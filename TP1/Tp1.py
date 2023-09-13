@@ -116,8 +116,8 @@ class fis:
         #print("--- %s seconds ---" % (time.time() - start_time))
         n_clusters = len(cl)
 
-        cl = cl[:,:-1]
-        P = data[:,:-1]
+        cl = cl[:,-1:]
+        P = data[:,-1:]
         #T = data[:,-1]
         maxValue = np.max(P, axis=0)
         minValue = np.min(P, axis=0)
@@ -188,10 +188,17 @@ class fis:
 
 def calculoErr(r, dataTest, cantCl): #!esta mal
     MSE = 0
+    print(r)
+    print(dataTest)
     for i in range(dataTest.shape[0]): 
         MSE += ((dataTest[i,1] - r[i])**2) 
         MSE = MSE / len(dataTest)
     print(MSE)
+    plt.figure()
+    plt.scatter(dataTest[:, 0], dataTest[:, 1], s=7)
+    plt.title("dataTest")
+    plt.xlabel('Tiempo')
+    plt.ylabel('VDA')
     return None
 
 data, dataTest = setData(porcDatosTest) 
