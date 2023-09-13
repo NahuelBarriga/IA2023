@@ -1,16 +1,31 @@
 from sklearn.cluster import KMeans
 import numpy as np
 import matplotlib.pyplot as plt
+import random
 
 datos= []
+datosTest = [] 
 cantClusters=3
+porcDatosTest = 0.20
 
 #* Pasa los datos del .txt a un array
 with open("Clustering/samplesVDA1.txt") as file:
     for nbrLine, line in enumerate(file, 1):
         datos.append((nbrLine, float(line.strip()))) 
+print(len(datos))
+
+for i in range(round(len(datos)*porcDatosTest)): 
+    rand_idx = random.randrange(len(datos))
+    datosTest.append(datos[rand_idx])
+    datos.pop(rand_idx) 
+
+dataTest = np.array(datosTest)
 data = np.array(datos)
-print(data)
+print(len(data))
+print(len(dataTest))
+
+
+
 
 #* Asigna los clusters a lugares random dentro de los limites de los puntos
 cl = np.zeros((cantClusters,2))
@@ -53,7 +68,7 @@ while True:
         if cantPtos != 0:
             clNue[j,0] = nueX / cantPtos 
             clNue[j,1] = nueY / cantPtos 
-    print(clNue)
+    #print(clNue)
     if np.allclose(clNue,cl,atol =1e-6): 
         break
 
