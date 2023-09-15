@@ -213,6 +213,15 @@ def calculoErrTrain(r, data):
     return MSE
 
 
+def sobreMuest(data): 
+    tope = data.shape[0]-1
+    for i in range(tope): 
+        nuevo = ((data[i,0] + data[i+1,0])/2 , (data[i,1] + data[i+1,1])/2)
+        data.append(nuevo)
+    indices_orden = np.argsort(data[:, 0])
+    data_ordenada = data[indices_orden]
+    return data_ordenada
+
 
 data, dataTest = setData(porcDatosTest) 
 
@@ -242,6 +251,8 @@ for cantCl in range(3,topeCL):
     MSEHist.append(MSEtrain)
     ClHist.append(cantCl) 
 
+data = sobreMuest(data)
+
 grafica = True
 cantCl = 9
 fis2.genfis(data,cantCl, grafica)
@@ -249,18 +260,18 @@ fis2.viewInputs()
 r = fis2.evalfis(np.vstack(data_x))
 MSEtrain = calculoErrTrain(r, data)
 
-minMSE = min(MSEHist)
+#minMSE = min(MSEHist)
+
+
+
+
 
 plt.figure() 
 plt.plot(ClHist,MSEHist) 
 plt.title('cantCL x MSE')
 plt.xlabel('cantCL')
 plt.ylabel('MSE')
-#calculoErrTest(r, dataTest, cantCl) 
 
-
-
-#print(r)
 
 plt.figure()
 plt.plot(data_x,data_y)
