@@ -4,8 +4,8 @@ import random
 from sklearn.preprocessing import MinMaxScaler
 import time
 
-cantCl=3
-porcDatosTest = 0.20
+porcDatosTest = 0
+topeCL = 15
 
 def setData(porcDatosTest):
         datos= []
@@ -13,13 +13,13 @@ def setData(porcDatosTest):
         #* Pasa los datos del .txt a un array
         with open("TP1/samplesVDA4.txt") as file:
             for nbrLine, line in enumerate(file, 1):
-                datos.append((nbrLine, float(line.strip()))) 
+                datos.append((nbrLine*2.5, float(line.strip()))) 
        #print(len(datos))
 
-        for i in range(round(len(datos)*porcDatosTest)): 
-            rand_idx = random.randrange(len(datos))
-            datosTest.append(datos[rand_idx])
-            datos.pop(rand_idx) 
+        #for i in range(round(len(datos)*porcDatosTest)): 
+        #    rand_idx = random.randrange(len(datos))
+        #    datosTest.append(datos[rand_idx])
+        #    datos.pop(rand_idx) 
 
         dataTest = np.array(datosTest)
         data = np.array(datos)
@@ -29,12 +29,13 @@ def setData(porcDatosTest):
 
 
 
-def kMeans(data, cantCl):
+def kMeans(data, cantCl, grafica):
     #* Asigna los clusters a lugares random dentro de los limites de los puntos
     cl = np.zeros((cantCl,2))
     for i in range(cantCl): 
-        cl[i,0]=np.random.uniform(min(data[:,0]), max(data[:,0]))
-        cl[i,1]=np.random.uniform(min(data[:,1]), max(data[:,1]))
+        rand_idx = random.randrange(len(data))
+        cl[i,0]=data[rand_idx,0]
+        cl[i,1]=data[rand_idx,1]
     #* Crea la matriz de asignacion de clusters inicializada en 0 (primer cl)
     clData = np.zeros(np.asanyarray(data).shape[0])
     #* Ciclo de asignacion de clusters
@@ -68,12 +69,13 @@ def kMeans(data, cantCl):
     # Define un conjunto de colores personalizados para cada grupo en 'clData'
     colormap = plt.cm.get_cmap('tab10', len(np.unique(clData)))
     # Crea una gráfica de dispersión asignando colores basados en 'clData'
-    plt.figure()
-    plt.scatter(data[:, 0], data[:, 1], c=clData, cmap=colormap, s=7)
-    plt.scatter(cl[:, 0], cl[:, 1], c='black', marker='x')
-    plt.title("clusters")
-    plt.xlabel('Tiempo')
-    plt.ylabel('VDA')
+    if grafica:
+        plt.figure()
+        plt.scatter(data[:, 0], data[:, 1], c=clData, cmap=colormap, s=7)
+        plt.scatter(cl[:, 0], cl[:, 1], c='black', marker='x')
+        plt.title("clusters")
+        plt.xlabel('Tiempo')
+        plt.ylabel('VDA')
     
     return clData, cl
 
@@ -108,11 +110,11 @@ class fis:
 
 
 
-    def genfis(self, data):
+    def genfis(self, data, cantCl, grafica):
 
         start_time = time.time()
         #labels, cluster_center = kMeans(data, cantCl)
-        clData, cl = kMeans(data, cantCl)
+        clData, cl = kMeans(data, cantCl, grafica)
         #print("--- %s seconds ---" % (time.time() - start_time))
         n_clusters = len(cl)
 
@@ -186,20 +188,31 @@ class fis:
         for input in self.inputs:
             input.view()
 
-def calculoErr(r, dataTest, cantCl): #!esta mal
-    MSE = 0
+def calculoErrTest(r, dataTest, cantCl): #!esta mal
+    MSEtest = 0
     print(r)
     print(dataTest)
     for i in range(dataTest.shape[0]): 
-        MSE += ((dataTest[i,1] - r[i])**2) 
-        MSE = MSE / len(dataTest)
-    print(MSE)
+        MSEtest += ((dataTest[i,1] - r[i])**2) 
+    MSEtest = MSEtest / len(dataTest)
+    print(MSEtest)
     plt.figure()
     plt.scatter(dataTest[:, 0], dataTest[:, 1], s=7)
     plt.title("dataTest")
     plt.xlabel('Tiempo')
     plt.ylabel('VDA')
     return None
+
+def calculoErrTrain(r, data): 
+    MSE = 0
+    #print(r)
+    #print(data) 
+    for i in range(data.shape[0]): 
+        MSE += ((data[i,1] - r[i])**2) 
+    MSE = MSE / len(data)
+    return MSE
+
+
 
 data, dataTest = setData(porcDatosTest) 
 
@@ -211,13 +224,41 @@ data_y = data[:,1]
 #plt.xlim(-7,7)
 
 data = np.vstack((data_x, data_y)).T
+MSEHist = []
+ClHist = []
+
 
 fis2 = fis()
-fis2.genfis(data)
+
+grafica = False
+
+for cantCl in range(3,topeCL):
+    fis2.genfis(data,cantCl, grafica)
+    if grafica:
+        fis2.viewInputs()
+    r = fis2.evalfis(np.vstack(data_x))
+    MSEtrain = calculoErrTrain(r, data)
+    print("CL: ", cantCl, "MSE: ",MSEtrain)
+    MSEHist.append(MSEtrain)
+    ClHist.append(cantCl) 
+
+grafica = True
+cantCl = 9
+fis2.genfis(data,cantCl, grafica)
 fis2.viewInputs()
 r = fis2.evalfis(np.vstack(data_x))
+MSEtrain = calculoErrTrain(r, data)
 
-calculoErr(r, dataTest, cantCl)
+minMSE = min(MSEHist)
+
+plt.figure() 
+plt.plot(ClHist,MSEHist) 
+plt.title('cantCL x MSE')
+plt.xlabel('cantCL')
+plt.ylabel('MSE')
+#calculoErrTest(r, dataTest, cantCl) 
+
+
 
 #print(r)
 
