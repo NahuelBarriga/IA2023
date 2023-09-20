@@ -1,12 +1,11 @@
-from sklearn.cluster import KMeans
 import numpy as np
 import matplotlib.pyplot as plt
 
 datos= []
-cantClusters=3
+cantClusters=4
 
 #* Pasa los datos del .txt a un array
-with open("Clustering/samplesVDA1.txt") as file:
+with open("Clustering/datos/datos.txt") as file:
     for nbrLine, line in enumerate(file, 1):
         datos.append((nbrLine, float(line.strip()))) 
 data = np.array(datos)
