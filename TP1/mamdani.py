@@ -35,21 +35,19 @@ a_final = np.arange(0, 11, 1)
 # FUNCIONES DE MEMBRESIA DIFUSAS
 
 # ?chequear estos parametros
-nota_low = fuzz.trapmf(x_nota, [0, 0, 3, 3])  # nota baja: [0,3]
-nota_md = fuzz.trapmf(x_nota, [4, 4, 6, 6])  # nota media: [4,6]
-nota_hi = fuzz.trapmf(x_nota, [7, 7, 10, 10])  # nota alta [7,10]
+nota_low = fuzz.trapmf(x_nota, [0, 0, 3, 5])  # nota baja: [0,3]
+nota_md = fuzz.trapmf(x_nota, [2, 4, 6, 8])  # nota media: [4,6]
+nota_hi = fuzz.trapmf(x_nota, [5, 7, 10, 10])  # nota alta [7,10]
 
 
-concepto_low = fuzz.trapmf(
-    y_concepto, [0, 0, 3, 3]
-)  # concidero que concepto reg=nota baja, concepto bueno=nota media y etc
-concepto_md = fuzz.trapmf(y_concepto, [4, 4, 6, 6])
-concepto_hi = fuzz.trapmf(y_concepto, [7, 7, 10, 10])
+concepto_low = fuzz.trapmf(y_concepto, [0, 0, 3, 5])
+concepto_md = fuzz.trapmf(y_concepto, [2, 4, 6, 8])
+concepto_hi = fuzz.trapmf(y_concepto, [5, 7, 10, 10])
 
 
-final_low = fuzz.trapmf(a_final, [0, 0, 3, 3])
-final_md = fuzz.trapmf(a_final, [4, 4, 6, 6])
-final_hi = fuzz.trapmf(a_final, [7, 7, 10, 10])
+final_low = fuzz.trapmf(a_final, [0, 0, 3, 5])
+final_md = fuzz.trapmf(a_final, [2, 4, 6, 8])
+final_hi = fuzz.trapmf(a_final, [5, 7, 10, 10])
 
 
 # grafico de estas funciones
@@ -84,8 +82,11 @@ plt.tight_layout()
 
 #! paso 2: INFERENCIA
 
-value_nota = 3
-value_concepto = 3
+value_nota = 5
+value_concepto = 2
+
+print("nota examen:", value_nota)
+print("nota concepto:", value_concepto)
 
 # CALCULA EL GRADO DE MEMBRESIA DE UN VALOR DADO EN UNA FUNCION DE MEM DIFUSA
 nota_level_lo = fuzz.interp_membership(x_nota, nota_low, value_nota)
@@ -95,7 +96,6 @@ nota_level_hi = fuzz.interp_membership(x_nota, nota_hi, value_nota)
 concepto_level_lo = fuzz.interp_membership(y_concepto, concepto_low, value_concepto)
 concepto_level_md = fuzz.interp_membership(y_concepto, concepto_md, value_concepto)
 concepto_level_hi = fuzz.interp_membership(y_concepto, concepto_hi, value_concepto)
-
 
 # rule evaluation: [ x and  y --> A  ] = [Umin(x,y) --> A ]
 
@@ -111,15 +111,16 @@ represents the result of the antecedent evaluation
 
 # rule 1: nota baja and concepto regular then recursa
 active_rule1 = np.fmin(nota_level_lo, concepto_level_lo)
-final_activation_lo = np.fmax(active_rule1, final_low)
+final_activation_lo = np.fmin(active_rule1, final_low)
+print("final low", final_low)
 
-# rule 2: nota media and concepto bajo then habilita
-active_rule2 = np.fmin(nota_level_md, concepto_level_lo)
-final_activation_md = np.fmax(active_rule2, final_md)
+# rule 2: nota media and concepto bueno then habilita
+active_rule2 = np.fmin(nota_level_md, concepto_level_md)
+final_activation_md = np.fmin(active_rule2, final_md)
 
 # rule 3: nota alta and concepto alto then promociona
 active_rule3 = np.fmin(nota_level_hi, concepto_level_hi)
-final_activation_hi = np.fmax(active_rule3, final_hi)
+final_activation_hi = np.fmin(active_rule3, final_hi)
 
 print("final: desaprobar", final_activation_lo)
 print("final: habilitar", final_activation_md)
@@ -156,7 +157,6 @@ plt.tight_layout()
 
 #! paso 3: AGREGACION
 
-# ? va con fmin xq es con and
 aggregated = np.fmax(
     final_activation_lo, np.fmax(final_activation_md, final_activation_hi)
 )
@@ -165,7 +165,7 @@ aggregated = np.fmax(
 
 final = fuzz.defuzz(a_final, aggregated, "centroid")
 final_activation = fuzz.interp_membership(a_final, aggregated, final)
-print(f"NOTA FINAL:{final}")
+print(f"------------ NOTA FINAL:{final} --------------")
 
 
 fig, ax0 = plt.subplots(figsize=(8, 3))
