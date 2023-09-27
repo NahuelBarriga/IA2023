@@ -35,20 +35,18 @@ a_final = np.arange(0, 11, 1)
 # FUNCIONES DE MEMBRESIA DIFUSAS
 
 # ?chequear estos parametros
+
 nota_low = fuzz.trapmf(x_nota, [0, 0, 3, 5])  # nota baja: [0,3]
 nota_md = fuzz.trapmf(x_nota, [2, 4, 6, 8])  # nota media: [4,6]
 nota_hi = fuzz.trapmf(x_nota, [5, 7, 10, 10])  # nota alta [7,10]
-
 
 concepto_low = fuzz.trapmf(y_concepto, [0, 0, 3, 5])
 concepto_md = fuzz.trapmf(y_concepto, [2, 4, 6, 8])
 concepto_hi = fuzz.trapmf(y_concepto, [5, 7, 10, 10])
 
-
 final_low = fuzz.trapmf(a_final, [0, 0, 3, 5])
 final_md = fuzz.trapmf(a_final, [2, 4, 6, 8])
 final_hi = fuzz.trapmf(a_final, [5, 7, 10, 10])
-
 
 # grafico de estas funciones
 fig, (ax0, ax1, ax2) = plt.subplots(nrows=3, figsize=(8, 9))
@@ -82,11 +80,11 @@ plt.tight_layout()
 
 #! paso 2: INFERENCIA
 
-value_nota = 5
-value_concepto = 2
-
+value_nota = 8
+value_concepto = 1
 print("nota examen:", value_nota)
 print("nota concepto:", value_concepto)
+print("")
 
 # CALCULA EL GRADO DE MEMBRESIA DE UN VALOR DADO EN UNA FUNCION DE MEM DIFUSA
 nota_level_lo = fuzz.interp_membership(x_nota, nota_low, value_nota)
@@ -109,22 +107,31 @@ represents the result of the antecedent evaluation
 # final_activacion_ii: valores de activacion de diferentes reglas
 # ? (fuerza de disparo??)
 
+print("nota_level_lo", nota_level_lo, "concepto_level_lo", concepto_level_lo)
+print("nota_level_lo", nota_level_md, "concepto_level_lo", concepto_level_md)
+print("nota_level_lo", nota_level_hi, "concepto_level_lo", concepto_level_hi)
+print("")
+
 # rule 1: nota baja and concepto regular then recursa
 active_rule1 = np.fmin(nota_level_lo, concepto_level_lo)
+print("active_rule1", active_rule1)
 final_activation_lo = np.fmin(active_rule1, final_low)
-print("final low", final_low)
 
 # rule 2: nota media and concepto bueno then habilita
 active_rule2 = np.fmin(nota_level_md, concepto_level_md)
+print("active_rule2", active_rule2)
 final_activation_md = np.fmin(active_rule2, final_md)
 
 # rule 3: nota alta and concepto alto then promociona
 active_rule3 = np.fmin(nota_level_hi, concepto_level_hi)
+print("active_rule3", active_rule3)
 final_activation_hi = np.fmin(active_rule3, final_hi)
 
+print("")
 print("final: desaprobar", final_activation_lo)
 print("final: habilitar", final_activation_md)
 print("finial: promocionar", final_activation_hi)
+print("")
 
 final0 = np.zeros_like(a_final)
 
@@ -160,6 +167,7 @@ plt.tight_layout()
 aggregated = np.fmax(
     final_activation_lo, np.fmax(final_activation_md, final_activation_hi)
 )
+print("agregated", aggregated)
 
 #! paso 4: DEFUZZIFICACION
 
