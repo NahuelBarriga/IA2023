@@ -5,7 +5,7 @@ from sklearn.preprocessing import MinMaxScaler
 import time
 
 porcDatosTest = 0
-topeCL = 15
+topeCL = 7
 
 def setData(porcDatosTest):
         datos= []
@@ -19,14 +19,19 @@ def setData(porcDatosTest):
         #for i in range(round(len(datos)*porcDatosTest)): 
         #    rand_idx = random.randrange(len(datos))
         #    datosTest.append(datos[rand_idx])
-        #    datos.pop(rand_idx) 
-
+        #    datos.pop(rand_idx)     
         dataTest = np.array(datosTest)
         data = np.array(datos)
         #print(len(data))
         #print(len(dataTest))
         return data, dataTest
 
+
+def normData(dataY):
+    dataNorm = np.zeros((dataY.size))
+    for i in range(dataY.size): 
+        dataNorm[i] = (dataY[i] - min(dataY))/ (max(dataY) - min(dataY))
+    return dataNorm
 
 
 def kMeans(data, cantCl, grafica):
@@ -131,10 +136,11 @@ class fis:
     def entrenar(self, data):
         P = data[:,:-1]
         T = data[:,-1]
+        Z = data[:,-1:]
         #___________________________________________
         # MINIMOS CUADRADOS (lineal)
         sigma = np.array([(i.maxValue-i.minValue)/np.sqrt(8) for i in self.inputs])
-        f = [np.prod(gaussmf(P,cluster,sigma),axis=1) for cluster in self.rules]
+        f = [np.prod(gaussmf(Z,cluster,sigma),axis=1) for cluster in self.rules]
 
         nivel_acti = np.array(f).T
         #print("nivel acti")
@@ -160,7 +166,7 @@ class fis:
 
         b = T
 
-        solutions, residuals, rank, s = np.linalg.lstsq(A,b,rcond=None)
+        solutions, residuals, rank, s = np.linalg.lstsq(A,b,rcond=None) #devuelve la solucion de los minimos cuadrados
         self.solutions = solutions #.reshape(n_clusters,n_vars)
         #print(solutions)
         return 0
@@ -215,20 +221,31 @@ def calculoErrTrain(r, data):
 
 def sobreMuest(data): 
     tope = data.shape[0]-1
+    result = []
     for i in range(tope): 
-        nuevo = ((data[i,0] + data[i+1,0])/2 , (data[i,1] + data[i+1,1])/2)
-        data.append(nuevo)
-    indices_orden = np.argsort(data[:, 0])
-    data_ordenada = data[indices_orden]
+        nuevo = np.array([(data[i,0] + data[i+1,0])/2, (data[i,1] + data[i+1,1])/2])
+        result.append(data[i])
+        result.append(nuevo)
+    result.append(data[-1])
+    result = np.vstack(result)
+    indices_orden = np.argsort(result[:, 0])
+    data_ordenada = result[indices_orden]
     return data_ordenada
+
+def optCl(ClHist): 
+    return np.argmin(ClHist)
+
+
 
 
 data, dataTest = setData(porcDatosTest) 
-
 data_x = data[:,0]
 data_y = data[:,1]
+data_y = normData(data_y)
+
 
 #plt.plot(data_x, data_y)
+#plt.show()
 # plt.ylim(-20,20)
 #plt.xlim(-7,7)
 
@@ -245,20 +262,23 @@ for cantCl in range(3,topeCL):
     fis2.genfis(data,cantCl, grafica)
     if grafica:
         fis2.viewInputs()
-    r = fis2.evalfis(np.vstack(data_x))
+    r = fis2.evalfis(np.vstack(data_y))
     MSEtrain = calculoErrTrain(r, data)
     print("CL: ", cantCl, "MSE: ",MSEtrain)
     MSEHist.append(MSEtrain)
     ClHist.append(cantCl) 
 
+MSEHist = np.vstack(MSEHist)
+ClHist = np.vstack(ClHist)
 data = sobreMuest(data)
 
+cantCl = optCl(MSEHist*ClHist) + 3
+print("Cantidad de clusters optimo: ",cantCl)
 grafica = True
-cantCl = 9
 fis2.genfis(data,cantCl, grafica)
 fis2.viewInputs()
-r = fis2.evalfis(np.vstack(data_x))
-MSEtrain = calculoErrTrain(r, data)
+r = fis2.evalfis(np.vstack(data_y))
+#MSEtrain = calculoErrTrain(r, data)
 
 #minMSE = min(MSEHist)
 
