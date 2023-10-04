@@ -26,9 +26,15 @@ regla 3:
 # [ x and  A --> B  ] = [Umin(x,A) --> B ]
 
 # variables universales
-x_nota = np.arange(0, 10.5, 0.5)
+x_nota = np.arange(0, 110, 5)
 y_concepto = np.arange(0, 10.5, 0.5)
 a_final = np.arange(0, 10.5, 0.5)
+
+"""
+regular = np.arange(0,3,1)
+bueno = np.arange(4,6,1)
+excelente = np.arange(7,10,1)
+"""
 
 
 #! paso 1: FUZZIFICACION
@@ -36,9 +42,9 @@ a_final = np.arange(0, 10.5, 0.5)
 
 # ?chequear estos parametros
 
-nota_low = fuzz.trapmf(x_nota, [0, 0, 3, 5])  # nota baja: [0,3]
-nota_md = fuzz.trapmf(x_nota, [2, 4, 6, 8])  # nota media: [4,6]
-nota_hi = fuzz.trapmf(x_nota, [5, 7, 10, 10])  # nota alta [7,10]
+nota_low = fuzz.trapmf(x_nota, [0, 0, 30, 50])  # nota baja: [0,30]
+nota_md = fuzz.trapmf(x_nota, [20, 40, 60, 80])  # nota media: [40,60]
+nota_hi = fuzz.trapmf(x_nota, [50, 70, 100, 100])  # nota alta [70,100]
 
 concepto_low = fuzz.trapmf(y_concepto, [0, 0, 3, 5])
 concepto_md = fuzz.trapmf(y_concepto, [2, 4, 6, 8])
@@ -80,11 +86,19 @@ plt.tight_layout()
 
 #! paso 2: INFERENCIA
 
-value_nota = 3.5
-value_concepto = 7.5
+value_nota = 85
+value_concepto = 1.5
+peso_nota = 5
+peso_concepto = 1
+
+
 print("nota examen:", value_nota)
 print("nota concepto:", value_concepto)
 print("")
+
+prom_ponderado = (peso_nota * value_nota + peso_concepto * value_concepto) / (
+    peso_nota + peso_concepto
+)
 
 # CALCULA EL GRADO DE MEMBRESIA DE UN VALOR DADO EN UNA FUNCION DE MEM DIFUSA
 nota_level_lo = fuzz.interp_membership(x_nota, nota_low, value_nota)
@@ -112,20 +126,29 @@ print("nota_level_lo", nota_level_md, "concepto_level_lo", concepto_level_md)
 print("nota_level_lo", nota_level_hi, "concepto_level_lo", concepto_level_hi)
 print("")
 
-# rule 1: nota baja and concepto regular then recursa
-active_rule1 = np.fmax(nota_level_lo, concepto_level_lo)
+
+# rule 1: nota baja OR concepto regular then recursa
+active_rule1 = (peso_nota * nota_level_lo + peso_concepto * concepto_level_lo) / (
+    peso_nota + peso_concepto
+)
 print("active_rule1", active_rule1)
 final_activation_lo = np.fmin(active_rule1, final_low)
 
-# rule 2: nota media and concepto bueno then habilita
-active_rule2 = np.fmax(nota_level_md, concepto_level_md)
-print("active_rule2", active_rule2)
+# rule 2: nota media OR concepto bueno then habilita
+active_rule2 = (peso_nota * nota_level_md + peso_concepto * concepto_level_md) / (
+    peso_nota + peso_concepto
+)
+print("active_rule3", active_rule2)
+
 final_activation_md = np.fmin(active_rule2, final_md)
 
-# rule 3: nota alta and concepto alto then promociona
-active_rule3 = np.fmax(nota_level_hi, concepto_level_hi)
+# rule 3: nota alta OR concepto alto then promociona
+active_rule3 = (peso_nota * nota_level_hi + peso_concepto * concepto_level_hi) / (
+    peso_nota + peso_concepto
+)
 print("active_rule3", active_rule3)
 final_activation_hi = np.fmin(active_rule3, final_hi)
+
 
 print("")
 print("final: desaprobar", final_activation_lo)
