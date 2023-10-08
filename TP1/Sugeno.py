@@ -2,6 +2,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import random
 from sklearn.preprocessing import MinMaxScaler
+import math as ma
 import time
 
 porcDatosTest = 0
@@ -194,20 +195,28 @@ class fis:
         for input in self.inputs:
             input.view()
 
-def calculoErrTest(r, dataTest, cantCl): #!esta mal
+def calculoErrTest(r, dataTest): #!esta mal
     MSEtest = 0
-    print(r)
-    print(dataTest)
-    for i in range(dataTest.shape[0]): 
-        MSEtest += ((dataTest[i,1] - r[i])**2) 
+    #print((r))
+    #print((dataTest))
+    for i in range(1,dataTest.shape[0],2):  
+        #genera nuevo valor en r para testear
+        indFloor = ma.floor(i/2)
+        indCeil = ma.ceil(i/2) 
+        #print(r[indFloor], " y ", r[indCeil])
+        nueR = (r[indFloor] + r[indCeil] )/ 2
+        MSEtest += ((dataTest[i,1] - nueR)**2) 
+        #print(dataTest[i,1] ," = ", nueR) 
+
     MSEtest = MSEtest / len(dataTest)
-    print(MSEtest)
+    #print(MSEtest)
     plt.figure()
     plt.scatter(dataTest[:, 0], dataTest[:, 1], s=7)
     plt.title("dataTest")
     plt.xlabel('Tiempo')
     plt.ylabel('VDA')
-    return None
+    
+    return MSEtest
 
 def calculoErrTrain(r, data): 
     MSE = 0
@@ -270,6 +279,7 @@ for cantCl in range(3,topeCL):
 
 MSEHist = np.vstack(MSEHist)
 ClHist = np.vstack(ClHist)
+
 data = sobreMuest(data)
 
 cantCl = optCl(MSEHist*ClHist) + 3
@@ -279,6 +289,7 @@ fis2.genfis(data,cantCl, grafica)
 fis2.viewInputs()
 r = fis2.evalfis(np.vstack(data_y))
 #MSEtrain = calculoErrTrain(r, data)
+#print("MREtest = ", calculoErrTest(r,data))
 
 #minMSE = min(MSEHist)
 
