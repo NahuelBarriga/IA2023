@@ -78,7 +78,7 @@ def kMeans(data, cantCl, grafica):
     if grafica:
         plt.figure()
         plt.scatter(data[:, 0], data[:, 1], c=clData, cmap=colormap, s=7)
-        plt.scatter(cl[:, 0], cl[:, 1], c='black', marker='x')
+        #plt.scatter(cl[:, 0], cl[:, 1], c='black', marker='x')
         plt.title("clusters")
         plt.xlabel('Tiempo')
         plt.ylabel('VDA')
@@ -279,7 +279,6 @@ for cantCl in range(3,topeCL):
 
 MSEHist = np.vstack(MSEHist)
 ClHist = np.vstack(ClHist)
-
 data = sobreMuest(data)
 
 cantCl = optCl(MSEHist*ClHist) + 3
@@ -289,7 +288,9 @@ fis2.genfis(data,cantCl, grafica)
 fis2.viewInputs()
 r = fis2.evalfis(np.vstack(data_y))
 #MSEtrain = calculoErrTrain(r, data)
-#print("MREtest = ", calculoErrTest(r,data))
+MSETest = calculoErrTest(r,data)
+print("MSEtest = ", MSETest)
+print("dif MSE: ", MSEHist[cantCl-3] - MSETest)
 
 #minMSE = min(MSEHist)
 
