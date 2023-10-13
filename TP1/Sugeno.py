@@ -2,6 +2,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import random
 from sklearn.preprocessing import MinMaxScaler
+from sklearn.metrics import silhouette_score
 import math as ma
 import time
 
@@ -71,6 +72,7 @@ def kMeans(data, cantCl, grafica):
         #print(clNue)
         if np.allclose(clNue,cl,atol =1e-6): 
             break
+    print(cantCl, "| silhouette score: ", silhouette_score(data,clData))
 
     # Define un conjunto de colores personalizados para cada grupo en 'clData'
     colormap = plt.cm.get_cmap('tab10', len(np.unique(clData)))
@@ -279,7 +281,9 @@ for cantCl in range(3,topeCL):
 
 MSEHist = np.vstack(MSEHist)
 ClHist = np.vstack(ClHist)
-data = sobreMuest(data)
+#data = sobreMuest(data)
+
+
 
 cantCl = optCl(MSEHist*ClHist) + 3
 print("Cantidad de clusters optimo: ",cantCl)
@@ -289,8 +293,8 @@ fis2.viewInputs()
 r = fis2.evalfis(np.vstack(data_y))
 #MSEtrain = calculoErrTrain(r, data)
 MSETest = calculoErrTest(r,data)
-print("MSEtest = ", MSETest)
-print("dif MSE: ", MSEHist[cantCl-3] - MSETest)
+#print("MSEtest = ", MSETest)
+#print("dif MSE: ", MSEHist[cantCl-3] - MSETest)
 
 #minMSE = min(MSEHist)
 
